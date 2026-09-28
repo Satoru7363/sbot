@@ -1,0 +1,3035 @@
+EVE / SATORU — ULTRA INTELLIGENCE & INLINE OVERHAUL
+
+MASTER IMPLEMENTATION PROMPT
+
+أنت الآن تعمل على مشروع Telegram Cinema Bot حقيقي باسم:
+
+Eve / Satoru
+
+الملف الحالي هو النسخة المتطورة الحالية من البوت، ويجب أن تعمل على الملف الموجود في المشروع مباشرة.
+
+مهمتك ليست إضافة feature أو اثنتين.
+
+مهمتك هي إعادة هندسة ورفع مستوى البوت بالكامل إلى أقصى مستوى عملي ممكن، مع تركيز استثنائي على:
+
+1. فهم اللغة الطبيعية.
+2. فهم العربية العراقية.
+3. فهم الإنجليزية والعربية المختلطة.
+4. فهم transliteration.
+5. فهم السياق والمراجع.
+6. فهم نية المستخدم حتى عندما تكون صياغته غير واضحة.
+7. Entity Resolution وربط الكلام بكيانات TMDB حقيقية.
+8. Response Intelligence.
+9. Recommendation Intelligence.
+10. Conversation Memory.
+11. Inline Mode.
+12. Media Rendering.
+13. Reliability.
+14. Performance.
+15. Error recovery.
+16. Testing.
+17. Architecture coherence.
+
+لا أريد "بوتًا يملك ميزات كثيرة".
+
+أريد بوتًا يشعر المستخدم أنه يفهم ما يقوله فعلًا.
+
+---
+
+0 — أهم قاعدة في المشروع
+
+لا تتعامل مع AI باعتباره مصدر الحقيقة.
+
+القاعدة الأساسية:
+
+«AI understands language.
+TMDB provides reality.
+Context provides continuity.
+Response Policy decides behavior.
+Renderer produces the user-facing result.»
+
+AI يمكنه:
+
+- فهم اللغة.
+- استخراج النية.
+- استخراج التفضيلات.
+- تفسير طلب المستخدم.
+- تحليل فيلم/مسلسل.
+- كتابة جواب.
+- تحويل الكلام الطبيعي إلى structured intent.
+
+لكن AI لا يقرر من تلقاء نفسه أن فيلمًا أو مسلسلًا موجود.
+
+أي Media Entity يظهر للمستخدم يجب أن يكون:
+
+Verified by TMDB
+
+ولا يجوز اختراع:
+
+- movie
+- series
+- actor
+- season
+- episode
+- rating
+- release date
+- poster
+- TMDB ID
+- genre
+- recommendation
+
+---
+
+1 — لا تهدم ما يعمل
+
+قبل أي تعديل:
+
+اقرأ المشروع الحالي بالكامل.
+
+افهم:
+
+- architecture
+- functions
+- handlers
+- database
+- cache
+- TMDB
+- AI
+- Inline
+- callbacks
+- recommendations
+- media renderer
+- context
+- memory
+- logging
+- startup
+- background tasks
+
+لا تعيد كتابة شيء فقط لأنه ليس بالطريقة التي كنت ستكتبها.
+
+إذا كان component موجودًا ويعمل:
+
+حافظ عليه وطوره.
+
+إذا كان فيه implementation أفضل:
+
+حسنه تدريجيًا.
+
+إذا كان duplicate:
+
+ادمجه بأمان.
+
+إذا كان dead code:
+
+حدد سبب كونه dead قبل حذفه.
+
+إذا كان feature موجودًا ولكن runtime path ناقص:
+
+أكمل الـ runtime path.
+
+---
+
+2 — لا يوجد Line Count Target
+
+ممنوع أن تجعل:
+
+"عدد الأسطر"
+
+هدفًا.
+
+قد يصبح الملف:
+
+3000
+5000
+7000
+10000
+أكثر
+
+هذا ليس مهمًا.
+
+المهم:
+
+- correctness
+- architecture
+- maintainability
+- performance
+- reliability
+- intelligence
+
+لا تحذف كودًا فعالًا فقط لتقليل عدد الأسطر.
+
+---
+
+3 — One File Constraint
+
+البوت يجب أن يبقى في:
+
+ملف Python واحد رئيسي.
+
+لا تقسّم architecture إلى عشرات الملفات.
+
+يمكنك استخدام classes وdataclasses وservices داخل نفس الملف.
+
+مثال:
+
+IntentEngine
+EntityResolver
+ContextEngine
+MemoryEngine
+RecommendationEngine
+InlineEngine
+MediaRenderer
+ResponsePolicy
+AIEngine
+TMDBEngine
+CacheManager
+RequestTracer
+
+لكنها كلها تبقى داخل الملف الرئيسي.
+
+---
+
+4 — ابنِ عقل البوت
+
+أريد architecture منطقية بهذا المستوى:
+
+                    USER MESSAGE
+                         │
+                         ▼
+                Request Preprocessor
+                         │
+                         ▼
+              Language / Text Analyzer
+                         │
+                         ▼
+              Context Reconstruction
+                         │
+                         ▼
+               Intent Understanding
+                         │
+                         ▼
+               Entity Resolution
+                         │
+              ┌──────────┴──────────┐
+              ▼                     ▼
+        User Memory          TMDB Reality
+              │                     │
+              └──────────┬──────────┘
+                         ▼
+                 Response Policy
+                         │
+             ┌───────────┼───────────┐
+             ▼           ▼           ▼
+           MEDIA        AI        SEARCH
+             │           │           │
+             └───────────┼───────────┘
+                         ▼
+                 Unified Renderer
+                         │
+             ┌───────────┼───────────┐
+             ▼           ▼           ▼
+          Telegram     Inline      Callback
+
+لكن لا تنفذ هذا الرسم بشكل حرفي إذا وجدت architecture أفضل.
+
+المطلوب هو المبدأ:
+
+لا تجعل كل handler يقرر وحده ماذا يفعل.
+
+---
+
+5 — SUPER INTENT ENGINE
+
+أريد نظام فهم يتجاوز keyword matching.
+
+لا أريد:
+
+if "رعب" in text:
+
+كحل أساسي.
+
+أريد أن يفهم:
+
+نفس المعنى بصيغ مختلفة:
+
+اريد فلم رعب
+اريد فيلم يخوف
+رشحلي شي مرعب
+عطني فلم يخوف
+اريد فلم horror
+recommend horror movie
+اريد movie رعب
+رشحلي شي يخوفني
+
+كلها يمكن أن تعبر عن:
+
+RECOMMENDATION
+media_type = MOVIE
+genre = HORROR
+
+---
+
+6 — Iraqi Arabic Intelligence
+
+اجعل النظام يفهم قدر الإمكان الصياغات العراقية الطبيعية:
+
+شنو
+شكو
+شلون
+ليش
+منو
+وين
+يمتى
+اريد
+أريد
+رشحلي
+انطيني
+عطني
+احچيلي
+احكيلي
+كلي
+يكلي
+بيه
+عنه
+علي
+عليه
+هذا
+هاي
+ذاك
+هذي
+هاذا
+
+وكذلك الاختصارات والأخطاء الإلائية الشائعة.
+
+لكن:
+
+لا تحول المشروع إلى dictionary ضخم فقط.
+
+استخدم dictionaries كطبقة مساعدة، وليس كالعقل.
+
+---
+
+7 — Arabic Normalization
+
+أنشئ normalization قوي:
+
+- إزالة التشكيل.
+- توحيد الهمزات.
+- توحيد الياء والألف المقصورة عند الحاجة.
+- إزالة التطويل.
+- التعامل مع punctuation.
+- whitespace normalization.
+- repeated characters.
+- Arabic/Latin mixed text.
+- Arabic numerals / English numerals.
+- spelling variations.
+
+مثال:
+
+أريد فيلم
+اريد فلم
+اااااريد فلم!!!
+
+يجب أن تصل إلى representation مفيد للـ NLU.
+
+---
+
+8 — Transliteration Engine
+
+هذه نقطة أساسية جدًا.
+
+يجب أن يستطيع المستخدم كتابة:
+
+فروم
+انسبشن
+انترستيلر
+دارك
+ذا بويز
+بريكنق باد
+سترينجر ثينقز
+
+ويصل البوت إلى:
+
+FROM
+Inception
+Interstellar
+Dark
+The Boys
+Breaking Bad
+Stranger Things
+
+لكن:
+
+لا تعمل hardcode لكل title.
+
+ابنِ architecture عامة:
+
+Arabic text
+→ normalization
+→ transliteration candidate
+→ Latin candidate
+→ TMDB search
+→ fuzzy matching
+→ popularity/title/type signals
+→ confidence
+→ entity
+
+ويجب أن تعمل على titles غير موجودة مسبقًا في dictionary.
+
+---
+
+9 — Fuzzy Entity Resolution
+
+أريد resolver قوي.
+
+يأخذ:
+
+raw_text
+
+ويولد:
+
+normalized_text
+candidate_titles
+candidate_types
+candidate_entities
+confidence
+ambiguity
+
+ويستخدم إشارات متعددة:
+
+- exact title
+- normalized title
+- alternative titles
+- Arabic title
+- English title
+- transliteration
+- token similarity
+- character similarity
+- word order
+- media type
+- popularity
+- release year
+- context
+- previous entity
+- user correction
+
+---
+
+10 — Entity Confidence
+
+لا تختار أول نتيجة من TMDB.
+
+أريد ranking.
+
+مثال:
+
+Candidate A
+title similarity: 0.92
+type match: 1
+context match: 1
+popularity: 0.8
+
+Candidate B
+title similarity: 0.87
+type match: 0
+...
+
+ثم:
+
+FINAL SCORE
+
+مع thresholds.
+
+إذا الثقة عالية:
+
+→ resolve مباشرة.
+
+إذا متوسطة:
+
+→ ambiguity handling.
+
+إذا منخفضة:
+
+→ search clarification / AI assistance / fallback.
+
+---
+
+11 — AI + Resolver Cooperation
+
+AI لا يجب أن يستبدل resolver.
+
+بدلًا من ذلك:
+
+User
+ ↓
+Deterministic preprocessing
+ ↓
+Resolver
+ ↓
+AI interpretation when necessary
+ ↓
+TMDB verification
+ ↓
+Final entity
+
+إذا AI قال:
+
+FROM
+
+يجب أن يمر FROM عبر TMDB.
+
+---
+
+12 — Intent Understanding
+
+أريد intents واضحة وقابلة للتوسع.
+
+مثل:
+
+MEDIA_INFO
+SUMMARY
+OPINION
+ANALYSIS
+CAST
+CHARACTERS
+ENDING
+EXPLANATION
+SEASON
+EPISODE
+FRANCHISE
+SIMILAR
+RECOMMENDATION
+SEARCH
+FOLLOW_UP
+COMPARISON
+RATING
+RELEASE_DATE
+WHERE_TO_WATCH
+TRAILER
+GENERAL_QUESTION
+UNKNOWN
+
+لا تضف intents فقط للزينة.
+
+كل intent يجب أن يكون له behavior واضح.
+
+---
+
+13 — Understand QUESTIONS about media
+
+مثال:
+
+شنو رأيك بـ FROM؟
+
+يجب أن يعرف:
+
+ENTITY = FROM
+INTENT = OPINION
+
+والنتيجة:
+
+MEDIA CARD
++
+AI ANSWER
+
+---
+
+14 — Summary
+
+ملخص مسلسل صراع العروش
+
+يجب:
+
+1. resolve entity
+2. verify TMDB
+3. send real media card
+4. send separate AI summary
+
+لا تضع الملخص داخل نفس card إذا كان ذلك يخرّب تجربة المستخدم.
+
+---
+
+15 — Cast
+
+منو ممثلين FROM؟
+منو بطل FROM؟
+منو الممثل الرئيسي؟
+
+يجب:
+
+MEDIA CARD
++
+AI / structured cast answer
+
+والـ cast يجب أن يأتي من TMDB.
+
+---
+
+16 — Ending
+
+شنو نهاية FROM؟
+فسرلي النهاية
+ليش النهاية هيج؟
+
+يجب:
+
+MEDIA CARD
++
+AI answer
+
+ويجب أن يكون واضحًا أن الجواب قد يحتوي spoilers.
+
+---
+
+17 — Follow-up Context
+
+مثال:
+
+User:
+
+احچيلي عن FROM
+
+Bot:
+
+CARD + ANSWER
+
+User:
+
+شنو رأيك بيه؟
+
+→ FROM
+
+User:
+
+عنده موسم ثالث؟
+
+→ FROM
+
+User:
+
+منو بطله؟
+
+→ FROM
+
+---
+
+18 — Context Stack
+
+لا تعتمد فقط على:
+
+last_media
+
+أريد context state منطقي.
+
+يمكن أن يحتوي:
+
+current_media
+previous_media
+conversation_topic
+last_intent
+last_response_type
+active_recommendation_set
+selected_recommendation
+pending_clarification
+pending_question
+
+مع expiry.
+
+---
+
+19 — Multi-result Context
+
+إذا:
+
+اريد 3 افلام رعب
+
+والبوت أعطى:
+
+A
+B
+C
+
+ثم:
+
+شنو رأيك بيه؟
+
+لا تختار A عشوائيًا.
+
+قل إن المرجع غير واضح واطلب:
+
+تقصد أي واحد؟
+
+أو استخدم Telegram callback/context إن كان المرجع واضحًا.
+
+---
+
+20 — Recommendation Engine
+
+أريد recommendations حقيقية.
+
+مصادر:
+
+- TMDB discover
+- TMDB search
+- TMDB similar
+- TMDB recommendations
+- genres
+- popularity
+- vote average
+- vote count
+- release year
+- user preferences
+- interaction history
+- previous recommendations
+
+لكن لا تجعل النتائج كلها:
+
+top rated
+
+أريد diversity.
+
+---
+
+21 — Recommendation Diversity
+
+إذا طلب:
+
+اريد 5 افلام رعب
+
+لا أريد خمسة نتائج متشابهة جدًا.
+
+استخدم diversity scoring.
+
+---
+
+22 — Recommendation Personalization
+
+إذا المستخدم يحب:
+
+Sci-Fi
+Mystery
+Thriller
+
+ويطلب:
+
+رشحلي شي
+
+يمكن استخدام profile.
+
+لكن لا تفترض preferences غير موجودة.
+
+---
+
+23 — Explicit Media Type
+
+هذه قاعدة صارمة.
+
+إذا المستخدم قال:
+
+اريد مسلسل مثل Interstellar
+
+فإن:
+
+TARGET TYPE = TV
+
+حتى لو Interstellar فيلم.
+
+لا تسمح لـ source type بأن يطغى على explicit target type.
+
+---
+
+24 — Count Understanding
+
+يفهم:
+
+اريد فلم
+اريد فلم واحد
+اريد 3 افلام
+اريد خمس مسلسلات
+رشحلي اثنين
+give me 4 movies
+
+ويستخرج العدد.
+
+مع حدود آمنة.
+
+---
+
+25 — /suggest
+
+صمم "/suggest" كنظام مستقل لكن يستخدم RecommendationEngine.
+
+المطلوب:
+
+- عدد ثابت حسب policy
+- dynamic results
+- randomized
+- no immediate repetition
+- history
+- personalization
+- diversity
+- real TMDB entities
+
+ولا تعتمد على ترتيب TMDB الثابت فقط.
+
+---
+
+26 — AI Recommendation Role
+
+إذا:
+
+اريد شي مثل فيلم يحسسني بالعزلة والغموض والواقع الملتوي
+
+AI يجب أن يساعد في تفسير الوصف.
+
+ثم:
+
+AI semantic intent
+→ TMDB candidate retrieval
+→ ranking
+→ verified results
+
+وليس:
+
+AI invents movie titles
+
+---
+
+27 — Bare Media Title
+
+إذا المستخدم كتب فقط:
+
+Interstellar
+FROM
+Dark
+فروم
+انسبشن
+
+وكان resolver واثقًا:
+
+→ CARD ONLY.
+
+لا ترسل:
+
+"فيلم رائع..."
+
+من نفسك.
+
+---
+
+28 — General Questions
+
+مثال:
+
+شنو الفرق بين OLED و QLED؟
+
+→ AI only.
+
+لا card.
+
+---
+
+29 — Comparison
+
+إذا:
+
+شنو الأفضل بين Interstellar و Inception؟
+
+لا تختر "فائزًا" بشكل سطحي.
+
+اعرض مقارنة موضوعية:
+
+- genre
+- themes
+- runtime
+- release
+- rating
+- style
+- complexity
+- audience characteristics
+
+ثم AI يشرح الفروقات.
+
+---
+
+30 — Media Facts
+
+أنشئ Media Fact Layer موحدة.
+
+يمكن أن تشمل:
+
+title
+original_title
+media_type
+year
+overview
+genres
+rating
+vote_count
+runtime
+seasons
+episodes
+status
+cast
+crew
+collection
+trailer
+providers
+poster
+backdrop
+
+يجب أن تكون TMDB-backed.
+
+---
+
+31 — MediaItem
+
+إن لم يكن موجودًا بشكل صحيح، أنشئ abstraction موحدة:
+
+MediaItem
+
+بحيث كل subsystem يتعامل معها.
+
+مثال:
+
+MediaItem(
+    id,
+    media_type,
+    title,
+    year,
+    overview,
+    rating,
+    genres,
+    poster,
+    ...
+)
+
+لا تجعل كل function تبني dictionary مختلفًا.
+
+---
+
+32 — Unified MediaRenderer
+
+يجب أن يكون هناك renderer موحد.
+
+Normal chat:
+
+MediaRenderer
+
+Recommendations:
+
+MediaRenderer
+
+Suggest:
+
+MediaRenderer
+
+Inline:
+
+MediaRenderer
+
+Callbacks:
+
+MediaRenderer
+
+Daily post:
+
+MediaRenderer
+
+لا تكرر caption logic.
+
+---
+
+33 — Telegram Caption Safety
+
+هذا Bug حقيقي ظهر في runtime:
+
+Media_caption_too_long
+
+يجب إصلاحه مركزيًا.
+
+قبل أي إرسال:
+
+validate_caption()
+
+إذا تجاوز limit:
+
+- preserve title
+- preserve year
+- preserve type
+- preserve rating
+- preserve genres
+- truncate overview safely
+- never break markup
+- never exceed Telegram limits
+
+يجب أن يعمل في:
+
+- normal messages
+- inline
+- recommendations
+- callbacks
+- daily posts
+
+---
+
+34 — INLINE MODE
+
+أريدك أن تتعامل مع Inline Mode كأنه منتج كامل داخل البوت وليس feature جانبية.
+
+أعد هندسة Inline بالكامل.
+
+---
+
+35 — Inline Architecture
+
+أريد pipeline:
+
+Inline Query
+ ↓
+Query Normalizer
+ ↓
+Inline Intent Detector
+ ↓
+Inline Entity Resolver
+ ↓
+TMDB Search / Discovery
+ ↓
+Candidate Ranking
+ ↓
+Deduplication
+ ↓
+Diversity
+ ↓
+MediaItem
+ ↓
+Inline Renderer
+ ↓
+Caption Validator
+ ↓
+answerInlineQuery
+
+---
+
+36 — Inline Query Examples
+
+يجب دعم:
+
+@bot from
+@bot FROM
+@bot فروم
+@bot f
+@bot dark
+@bot inception
+@bot انسبشن
+@bot horror
+@bot رعب
+@bot
+
+---
+
+37 — Empty Inline Query
+
+عند:
+
+@bot
+
+يجب أن يعرض محتوى مفيدًا.
+
+مثل:
+
+- trending
+- popular
+- personalized
+- recent
+- curated
+
+مع caching.
+
+---
+
+38 — Inline Search
+
+إذا:
+
+@bot from
+
+لا ترسل general answer.
+
+أريد Media Results.
+
+---
+
+39 — Inline Arabic
+
+@bot فروم
+
+يجب أن يجد FROM.
+
+لا تعتمد على AI وحده.
+
+---
+
+40 — Inline Genre
+
+@bot رعب
+
+يجب أن يفهم أنه يمكن أن يكون genre/discovery query.
+
+لا يعامل "رعب" كعنوان فيلم فقط.
+
+---
+
+41 — Inline Result Quality
+
+كل نتيجة يجب أن تكون:
+
+- real TMDB entity
+- correct type
+- poster
+- useful title
+- valid caption
+- stable result ID
+- cached where appropriate
+
+---
+
+42 — Inline Pagination
+
+صمم pagination مناسبة.
+
+لا تجلب مئات النتائج من TMDB لكل query.
+
+استخدم:
+
+- page
+- limit
+- cache
+- bounded retrieval
+
+---
+
+43 — Inline Cache
+
+Cache key يجب أن يعتمد على:
+
+normalized_query
+media_type
+page
+language
+user_context if personalization is enabled
+
+مع TTL مناسب.
+
+---
+
+44 — Inline Deduplication
+
+لا تعرض نفس TMDB ID عدة مرات.
+
+خصوصًا إذا جاءت النتائج من:
+
+- search
+- trending
+- similar
+- discover
+
+---
+
+45 — Inline Diversity
+
+لا تجعل أول النتائج كلها نفس النوع أو نفس franchise إذا كان query عامًا.
+
+---
+
+46 — Inline Callback
+
+إذا Inline result يحتوي buttons/callbacks:
+
+تأكد أن:
+
+- callback data قصيرة
+- secure
+- deterministic
+- يمكن استرجاع media ID
+- لا تعتمد على بيانات ضخمة داخل callback
+
+---
+
+47 — Chosen Inline Result
+
+تعامل مع:
+
+"ChosenInlineResult"
+
+بشكل صحيح.
+
+سجل:
+
+- user
+- query
+- result
+- media id
+- timestamp
+
+واستخدمها للتخصيص إذا كان ذلك آمنًا ومفيدًا.
+
+---
+
+48 — Inline Error Handling
+
+إذا TMDB فشل:
+
+لا ترجع 500.
+
+استخدم fallback.
+
+إذا AI فشل:
+
+Inline يجب أن يعمل بدون AI إذا كان البحث deterministic.
+
+إذا caption طويل:
+
+يجب إصلاحه قبل Telegram.
+
+إذا query غير مفهوم:
+
+أظهر fallback results مفيدة بدل crash.
+
+---
+
+49 — Inline Performance
+
+Inline يجب أن يكون سريعًا.
+
+لا تستدعِ Groq لكل query بسيط.
+
+مثال:
+
+@bot inception
+
+لا يحتاج AI.
+
+@bot فروم
+
+يمكن resolver deterministic أن يحاول أولًا.
+
+AI فقط عند الحاجة.
+
+---
+
+50 — Fast Path / Slow Path
+
+أريد مسارين:
+
+FAST PATH
+
+للطلبات الواضحة:
+
+FROM
+Inception
+Dark
+@bot from
+
+INTELLIGENT PATH
+
+للطلبات المعقدة:
+
+@bot اريد شي مثل فيلم يخلي عقلي ينفجر
+
+لا تستخدم AI إذا لا تحتاجه.
+
+---
+
+51 — AI Cost Control
+
+لا ترسل كل رسالة إلى Groq.
+
+حدد:
+
+when AI is required
+when AI is optional
+when AI is forbidden/unnecessary
+
+الـ deterministic layer يجب أن يسبق AI.
+
+---
+
+52 — AI Structured Output
+
+استخدم schema مثل:
+
+{
+  "intent": "RECOMMENDATION",
+  "media_type": "movie",
+  "title_query": null,
+  "genres": ["horror"],
+  "count": 3,
+  "reference": null,
+  "confidence": 0.94
+}
+
+لكن لا تثق بالـ JSON بدون validation.
+
+استخدم:
+
+- schema validation
+- enum validation
+- type validation
+- bounds
+- fallback
+
+---
+
+53 — AI Hallucination Firewall
+
+أنشئ طبقة تمنع AI من تسريب hallucinated media entities.
+
+إذا AI أعطى:
+
+title = "Unknown Movie"
+
+لا تعرضه.
+
+مرره عبر resolver/TMDB.
+
+إذا فشل verification:
+
+احذفه.
+
+---
+
+54 — AI Answer Grounding
+
+عندما يجيب AI عن فيلم:
+
+أرسل له facts موثوقة.
+
+مثلاً:
+
+title
+overview
+genres
+cast
+year
+runtime
+seasons
+episodes
+
+ثم اطلب منه الإجابة.
+
+لا تتركه يعتمد على memory فقط.
+
+---
+
+55 — Full Overview
+
+لا تقطع overview بشكل مبكر مثل:
+
+overview[:400]
+
+إذا احتاج AI معلومات أطول.
+
+لكن:
+
+- احترم token limits
+- نظف النص
+- استخدم relevant truncation
+- لا ترسل بيانات ضخمة بلا داعٍ.
+
+---
+
+56 — AI Answer Style
+
+البوت يجب أن يتكلم بشكل طبيعي.
+
+العربية العراقية عند استخدام العربية.
+
+لا تستخدم أسلوب:
+
+بصفتي نموذج ذكاء اصطناعي...
+
+ولا:
+
+وفقًا للبيانات...
+
+إلا إذا كان ذلك ضروريًا.
+
+لا تستخدم emoji بشكل عشوائي.
+
+لا تجعل الردود robotic.
+
+---
+
+57 — Response Separation
+
+عند الحاجة إلى:
+
+CARD + AI ANSWER
+
+يجب أن تكون رسالتين منفصلتين.
+
+مثال:
+
+[MEDIA CARD]
+
+ثم:
+
+[AI ANSWER]
+
+لا تخلط كل شيء في caption واحد.
+
+---
+
+58 — User Corrections
+
+إذا المستخدم قال:
+
+لا اقصد المسلسل
+
+أو:
+
+لا اقصد الفيلم
+
+يجب أن يستطيع النظام تعديل resolution بدل بدء كل شيء من الصفر.
+
+---
+
+59 — Clarification Engine
+
+إذا ambiguity حقيقية:
+
+لا تخمن.
+
+مثال:
+
+Dark
+
+إذا كانت النتائج ambiguous.
+
+يمكن:
+
+تقصد مسلسل Dark لو شيء ثاني؟
+
+لكن لا تكثر clarification إذا confidence عالية.
+
+---
+
+60 — Confidence Policy
+
+ضع thresholds واضحة:
+
+HIGH
+MEDIUM
+LOW
+
+مثال:
+
+HIGH:
+→ execute
+
+MEDIUM:
+→ maybe resolve with extra evidence
+
+LOW:
+→ clarification / fallback search
+
+ولا تستخدم أرقامًا وهمية بدون calibration.
+
+---
+
+61 — User Preference Learning
+
+تعلم من:
+
+- requested genres
+- chosen recommendations
+- repeated searches
+- likes
+- dislikes
+- watched selections
+
+لكن لا تسجل كل شيء بلا معنى.
+
+اجعل memory useful.
+
+---
+
+62 — Recommendation History
+
+احتفظ بسجل يمنع:
+
+same result repeatedly
+
+خاصة "/suggest".
+
+لكن لا تمنع title للأبد.
+
+استخدم:
+
+- recency
+- cooldown
+- history window
+
+---
+
+63 — Cache Architecture
+
+حافظ على:
+
+- media cache
+- search cache
+- inline cache
+- poster cache
+- AI cache
+
+لكن أصلح:
+
+- negative cache
+- stale results
+- eviction
+- memory limits
+
+وإذا كان LRU مطلوبًا، اجعله LRU حقيقيًا وليس مجرد insertion-order eviction.
+
+---
+
+64 — Shared HTTP Client
+
+افحص كل:
+
+httpx.AsyncClient
+
+إذا كان يتم إنشاء client جديد لكل request:
+
+صحح ذلك إلى shared lifecycle مناسب.
+
+لكن:
+
+لا تجعل shared client يبقى بعد shutdown.
+
+---
+
+65 — TMDB Reliability
+
+أريد:
+
+- timeout
+- retry
+- exponential backoff
+- bounded retries
+- circuit breaker
+- fallback
+- rate-limit awareness
+
+لكن لا تجعل retry storms.
+
+---
+
+66 — Telegram Reliability
+
+تعامل مع:
+
+- RetryAfter
+- BadRequest
+- Network errors
+- Message too long
+- invalid markup
+- unavailable photo
+- callback timeout
+
+بشكل مركزي.
+
+---
+
+67 — Error Messages
+
+المستخدم لا يجب أن يرى stack trace.
+
+Logs للمطور.
+
+User-facing fallback للمستخدم.
+
+مثلاً:
+
+ما لكيت النتيجة بشكل موثوق، جرب اسم أوضح.
+
+بدل crash.
+
+---
+
+68 — Request IDs
+
+كل request مهم يجب أن يحصل على:
+
+request_id
+
+مثلاً:
+
+REQ-8F31A2
+
+ويرافق logs.
+
+لا تطبع secrets.
+
+---
+
+69 — Diagnostics
+
+أريد debug mode يستطيع إظهار:
+
+RAW
+NORMALIZED
+INTENT
+ENTITY
+CONFIDENCE
+CONTEXT
+PLAN
+TMDB RESULT
+AI RESULT
+RENDER
+
+للمطور فقط.
+
+---
+
+70 — Startup Self Test
+
+عند startup:
+
+اختبر بشكل آمن:
+
+- configuration
+- DB
+- TMDB
+- cache
+- AI configuration
+- renderer
+- Inline configuration
+
+ولا تجعل failure في خدمة اختيارية يمنع البوت كله من العمل.
+
+---
+
+71 — Background Jobs
+
+افحص:
+
+- daily movie
+- scheduled posts
+- JobQueue
+- Flask/stream server
+
+إذا component optional وغير موجود:
+
+لا يقتل البوت.
+
+---
+
+72 — Security
+
+افحص جميع secrets.
+
+لا hardcode:
+
+- BOT_TOKEN
+- TMDB API key
+- Groq API key
+
+استخدم environment variables.
+
+ولا تطبع secrets في logs.
+
+إذا وجدت secrets موجودة فعليًا في المشروع، لا تكررها في output.
+
+---
+
+73 — Database Safety
+
+لا تكسر DB القديمة.
+
+إذا schema يحتاج migration:
+
+استخدم migration آمن.
+
+لا تحذف user data.
+
+لا تعيد إنشاء DB من الصفر.
+
+---
+
+74 — Performance
+
+لا تجعل:
+
+one user request
+→ 20 TMDB requests
+→ 3 Groq requests
+
+بدون داعٍ.
+
+استخدم:
+
+- batching where useful
+- cache
+- append_to_response
+- concurrency bounded
+- fast path
+
+---
+
+75 — Concurrency
+
+انتبه إلى:
+
+- SQLite
+- shared cache
+- shared HTTP client
+- asyncio
+- Telegram handlers
+- background jobs
+
+لا تدخل race conditions.
+
+---
+
+76 — Do Not Duplicate Intelligence
+
+لا أريد:
+
+handler A:
+    intent logic
+
+handler B:
+    different intent logic
+
+inline:
+    third intent logic
+
+suggest:
+    fourth resolver
+
+أريد:
+
+central intelligence
+
+مع adapters خاصة بكل surface.
+
+---
+
+77 — Central Response Plan
+
+صمم object مثل:
+
+ResponsePlan
+
+يحتوي على ما يكفي لتنفيذ القرار.
+
+مثال:
+
+intent
+entity
+entities
+media_type
+send_media_card
+send_ai_answer
+ai_prompt
+recommendations
+clarification
+context_update
+
+لكن اختر schema أفضل إذا كان مناسبًا.
+
+---
+
+78 — Response Policy Examples
+
+Example 1
+
+Input:
+
+مسلسل فروم
+
+Expected:
+
+resolve → FROM TV
+→ media card
+
+---
+
+Example 2
+
+Input:
+
+فروم
+
+Expected:
+
+FROM
+→ media card
+
+---
+
+Example 3
+
+Input:
+
+شنو رأيك بـ فروم؟
+
+Expected:
+
+FROM
+→ media card
+→ AI opinion
+
+---
+
+Example 4
+
+Input:
+
+ملخص مسلسل صراع العروش
+
+Expected:
+
+GAME OF THRONES
+→ media card
+→ separate AI summary
+
+---
+
+Example 5
+
+Input:
+
+اريد فلم رعب
+
+Expected:
+
+recommendation
+→ multiple real movie cards
+
+---
+
+Example 6
+
+Input:
+
+اريد مسلسل رعب
+
+Expected:
+
+TV recommendations only
+
+---
+
+Example 7
+
+Input:
+
+اريد 3 افلام رعب
+
+Expected:
+
+exactly 3 verified movie results
+
+---
+
+Example 8
+
+Input:
+
+Interstellar
+
+Expected:
+
+card only
+
+---
+
+Example 9
+
+Input:
+
+شنو رأيك بـ Interstellar؟
+
+Expected:
+
+card
++
+AI answer
+
+---
+
+Example 10
+
+Input:
+
+اريد مسلسل مثل Interstellar
+
+Expected:
+
+TV recommendations
+
+---
+
+Example 11
+
+Input:
+
+اريد شي يخوف
+
+Expected:
+
+reasonable horror recommendation
+
+ولا يجب أن يحتاج Groq فقط لفهم كلمة "يخوف".
+
+---
+
+Example 12
+
+Input:
+
+شنو الفرق بين OLED و QLED؟
+
+Expected:
+
+AI only
+
+---
+
+79 — Inline Examples
+
+Query
+
+@bot from
+
+Expected:
+
+real FROM results.
+
+Query
+
+@bot فروم
+
+Expected:
+
+FROM results.
+
+Query
+
+@bot inception
+
+Expected:
+
+Inception results.
+
+Query
+
+@bot رعب
+
+Expected:
+
+horror discovery/search results.
+
+Query
+
+@bot
+
+Expected:
+
+useful trending/popular/personalized results.
+
+Query
+
+@bot f
+
+Expected:
+
+bounded relevant results without flooding TMDB.
+
+---
+
+80 — Inline Caption Test
+
+يجب أن يكون مستحيلًا تقريبًا أن يصل:
+
+caption > Telegram limit
+
+إلى:
+
+answerInlineQuery
+
+أضف assertion/validation قبل إرسال النتائج.
+
+---
+
+81 — Inline Result Stability
+
+Result IDs يجب أن تكون:
+
+- unique
+- stable enough
+- short enough
+- deterministic where possible
+
+ولا تضع JSON ضخم داخل result ID.
+
+---
+
+82 — Inline Result Types
+
+استخدم Telegram Inline Result types المناسبة.
+
+اختر:
+
+- article
+- photo
+- cached_photo
+- etc.
+
+بحسب architecture الحالية.
+
+لا تغير النوع فقط من أجل التغيير.
+
+---
+
+83 — Inline Ranking
+
+رتب النتائج بناءً على:
+
+- title similarity
+- exactness
+- media type
+- popularity
+- vote count
+- rating
+- relevance
+- query intent
+
+لكن لا تجعل popularity تلغي exact match.
+
+إذا كتب:
+
+from
+
+يجب أن يظهر FROM قبل نتائج غير مطابقة فقط لأنها أكثر شعبية.
+
+---
+
+84 — Inline Personalization
+
+إذا كان المستخدم معروفًا:
+
+يمكن أن تستخدم preferences.
+
+لكن لا تجعل personalization يخفي exact query match.
+
+---
+
+85 — Inline Security
+
+تحقق من callback payload.
+
+لا تثق ببيانات user input.
+
+---
+
+86 — Testing Strategy
+
+أريد:
+
+Unit tests
+
+للـ:
+
+- normalization
+- transliteration
+- entity resolver
+- intent
+- count extraction
+- media type extraction
+- context
+- caption validator
+- recommendation ranking
+
+Integration tests
+
+للـ:
+
+- TMDB
+- AI
+- DB
+- Telegram adapters
+
+Runtime tests
+
+للـ:
+
+- normal messages
+- recommendations
+- follow-ups
+- inline
+
+Failure tests
+
+للـ:
+
+- API down
+- timeout
+- invalid AI JSON
+- Telegram errors
+- oversized captions
+
+---
+
+87 — Regression Tests
+
+أي bug يتم اكتشافه:
+
+أضف له regression test.
+
+لا تصلحه فقط ثم تنساه.
+
+---
+
+88 — Existing Known Bugs
+
+اعتبر هذه أمثلة حقيقية يجب إصلاح جذورها:
+
+BUG 1
+
+فروم
+
+كان يتحول إلى:
+
+GENERAL_QUESTION
+
+بدل FROM.
+
+---
+
+BUG 2
+
+رعب
+
+كان يمكن أن يتحول إلى SEARCH/media entity غير صحيح بدل discovery recommendation.
+
+---
+
+BUG 3
+
+Inline كان يرجع:
+
+400 Bad Request
+Media_caption_too_long
+
+---
+
+BUG 4
+
+Multi-result recommendation كان يجعل أول نتيجة active context بطريقة غير آمنة.
+
+---
+
+BUG 5
+
+Explicit target type مثل:
+
+اريد مسلسل مثل Interstellar
+
+كان يمكن أن يرث Movie type من source.
+
+---
+
+BUG 6
+
+Bare title قد يرسل AI commentary بدل card-only.
+
+---
+
+89 — Generalization Requirement
+
+لا تصلح:
+
+فروم
+رعب
+Interstellar
+
+كحالات خاصة.
+
+كل واحدة يجب أن تكون test case لفئة كاملة:
+
+فروم
+→ transliterated entity resolution
+
+رعب
+→ genre/discovery intent
+
+Interstellar
+→ bare media entity
+
+---
+
+90 — Do Not Overuse AI
+
+AI ليس الحل لكل شيء.
+
+إذا query واضح:
+
+Dark
+
+لا تحتاج Groq.
+
+إذا:
+
+اريد مسلسل مثل شي شفته قبل فترة وكان عن ناس محبوسين بمكان غريب وما يعرفون يطلعون
+
+هنا AI مفيد.
+
+---
+
+91 — Semantic Understanding
+
+أريد AI قادرًا على تحويل وصف المستخدم إلى semantic constraints.
+
+مثال:
+
+اريد مسلسل غامض، بيه ناس محبوسين بمكان غريب، وكل ما يحاولون يطلعون يرجعون لنفس المكان
+
+لا أريد AI يخترع title.
+
+بل:
+
+semantic preferences
+→ TMDB candidates
+→ ranking
+
+---
+
+92 — User Intent Beyond Keywords
+
+يفهم:
+
+اريد شي قوي
+
+قد يكون ambiguous.
+
+لا تفترض genre.
+
+يمكن:
+
+شنو النوع اللي تريده؟ رعب، أكشن، غموض...؟
+
+أو استخدم preferences إذا كانت واضحة.
+
+---
+
+93 — Natural Conversation
+
+أريد أن يشعر المستخدم أن البوت يعرف المحادثة السابقة.
+
+مثال:
+
+احچيلي عن Dark
+
+شنو رأيك بيه؟
+
+يشبه شنو؟
+
+عنده موسم ثاني؟
+
+منو الممثل الرئيسي؟
+
+وين اكدر اشوفه؟
+
+كل سؤال يجب أن يفهم المرجع.
+
+---
+
+94 — Topic Switching
+
+مثال:
+
+احچيلي عن Dark
+
+زين شنو رأيك بـ Interstellar؟
+
+يشبه شنو؟
+
+آخر سؤال = Interstellar.
+
+لا يعود إلى Dark.
+
+---
+
+95 — User Clarification
+
+مثال:
+
+احچيلي عن Dark
+
+ثم:
+
+لا اقصد الفيلم
+
+إذا هناك ambiguity:
+
+أعد resolution.
+
+---
+
+96 — Franchise Engine
+
+إذا TMDB يعرض collection:
+
+لا تكتفِ بحفظ:
+
+belongs_to_collection
+
+أريد architecture تسمح:
+
+شنو أجزاء السلسلة؟
+رتبلي الأفلام
+شنو الجزء الأول؟
+شنو الجزء الثاني؟
+
+إذا البيانات متاحة.
+
+---
+
+97 — Season/Episode Engine
+
+أريد التعامل مع:
+
+عنده موسم ثاني؟
+كم حلقة؟
+شنو الحلقة الأولى؟
+شنو صار بالحلقة 5؟
+
+ويجب أن يعرف الفرق بين:
+
+movie
+TV
+season
+episode.
+
+---
+
+98 — Spoiler Awareness
+
+إذا user يسأل:
+
+شنو النهاية؟
+
+يمكن تحذير مختصر من spoilers.
+
+لكن لا تمنع الجواب إذا طلبه بوضوح.
+
+---
+
+99 — Answer Quality
+
+AI answers يجب أن تكون:
+
+- relevant
+- grounded
+- natural
+- not repetitive
+- not unnecessarily long
+- consistent with available facts
+
+ولا تعيد card information حرفيًا ثم تسميه analysis.
+
+---
+
+100 — No Fake Success
+
+إذا TMDB failed:
+
+لا تقول:
+
+تم العثور على الفيلم
+
+إذا لم يتم العثور عليه.
+
+إذا AI failed:
+
+لا تدّعي أنه أجاب.
+
+إذا Inline failed:
+
+log السبب.
+
+---
+
+101 — Observability
+
+أريد logs توضح:
+
+[REQ]
+[NLU]
+[ENTITY]
+[TMDB]
+[AI]
+[POLICY]
+[RENDER]
+[TELEGRAM]
+
+مع request ID.
+
+لكن لا تجعل logs ضخمة بلا فائدة.
+
+---
+
+102 — Architecture Cleanup
+
+بعد التأكد من replacement:
+
+يمكن إزالة/تعطيل old logic.
+
+لكن لا تحذف شيء لمجرد أنه "قديم".
+
+تأكد من:
+
+- references
+- handlers
+- imports
+- tests
+- runtime path
+
+---
+
+103 — Compatibility
+
+لا تكسر:
+
+- commands الحالية
+- database
+- scheduled posts
+- existing callbacks
+- subscription system
+- daily jobs
+- existing API configuration
+- working features
+
+إلا إذا كان التغيير ضروريًا جدًا.
+
+---
+
+104 — Existing Undefined Functions
+
+افحص أي references مثل:
+
+_fb_get
+_fb_update
+issue_code
+_send_device_code
+
+أو أي symbols أخرى غير معرفة.
+
+لا تتجاهلها.
+
+حدد هل هي:
+
+- dead legacy
+- runtime bug
+- optional path
+- missing dependency
+
+ثم أصلحها إذا كانت تؤثر على runtime.
+
+---
+
+105 — Runtime Truth
+
+لا تعتبر:
+
+function exists
+
+دليلًا على أن feature تعمل.
+
+الدليل هو:
+
+input
+→ runtime path
+→ output
+
+---
+
+106 — Implementation Order
+
+نفذ على مراحل منطقية.
+
+مثال:
+
+Phase 1
+
+Architecture safety.
+
+Phase 2
+
+Normalization + Entity Resolution.
+
+Phase 3
+
+Intent + Context.
+
+Phase 4
+
+Response Policy.
+
+Phase 5
+
+Recommendation.
+
+Phase 6
+
+Media Renderer.
+
+Phase 7
+
+AI grounding.
+
+Phase 8
+
+Inline overhaul.
+
+Phase 9
+
+Reliability/performance.
+
+Phase 10
+
+Tests/regression.
+
+لكن إذا وجدت ترتيبًا أفضل، استخدمه.
+
+---
+
+107 — Before Changing Anything
+
+خذ snapshot منطقي من behavior الحالي.
+
+اعرف:
+
+- what works
+- what breaks
+- what must stay
+
+---
+
+108 — After Each Major Phase
+
+شغل tests.
+
+لا تنتظر نهاية المشروع لاكتشاف أن architecture انكسرت.
+
+---
+
+109 — Final Acceptance Criteria
+
+لا تعتبر المهمة منتهية إلا إذا تحقق:
+
+Understanding
+
+- Arabic
+- Iraqi Arabic
+- English
+- mixed
+- transliteration
+- spelling variations
+- contextual references
+
+Entity
+
+- real TMDB
+- confidence
+- ambiguity
+- correct media type
+
+AI
+
+- grounded
+- structured
+- fallback
+- no hallucinated media
+
+Recommendations
+
+- real entities
+- count
+- type
+- diversity
+- personalization
+- history
+
+Context
+
+- follow-ups
+- topic switching
+- multi-result ambiguity
+
+Renderer
+
+- unified
+- safe
+- consistent
+
+Inline
+
+- search
+- Arabic
+- transliteration
+- genre
+- empty query
+- pagination
+- ranking
+- cache
+- callbacks
+- chosen result
+- caption safety
+
+Reliability
+
+- API failures
+- timeouts
+- retries
+- rate limits
+- Telegram errors
+
+Security
+
+- secrets in env
+- no secret logging
+
+Testing
+
+- unit
+- integration
+- runtime
+- regression
+- failure cases
+
+---
+
+110 — VERY IMPORTANT: DO NOT STOP AT "IMPLEMENTED"
+
+بعد التنفيذ لا تقل فقط:
+
+تم إصلاح كل شيء.
+
+أريد تقريرًا فعليًا:
+
+Changed:
+...
+
+Preserved:
+...
+
+Removed:
+...
+
+New architecture:
+...
+
+Tests:
+...
+
+Passed:
+...
+
+Failed:
+...
+
+Known limitations:
+...
+
+---
+
+111 — FINAL REAL-WORLD TEST SUITE
+
+بعد التنفيذ اختبر هذه السيناريوهات بالضبط:
+
+A
+
+فروم
+
+→ FROM card only.
+
+B
+
+مسلسل فروم
+
+→ FROM TV card.
+
+C
+
+شنو رأيك بـ فروم؟
+
+→ FROM card + AI answer.
+
+D
+
+ملخص مسلسل صراع العروش
+
+→ card + separate summary.
+
+E
+
+اريد فلم رعب
+
+→ real movie recommendations.
+
+F
+
+اريد مسلسل رعب
+
+→ real TV recommendations.
+
+G
+
+اريد 3 افلام رعب
+
+→ exactly 3.
+
+H
+
+اريد مسلسل مثل Interstellar
+
+→ TV results.
+
+I
+
+Interstellar
+
+→ card only.
+
+J
+
+شنو رأيك بـ Interstellar؟
+
+→ card + AI.
+
+K
+
+اريد شي يخوف
+
+→ recommendation/discovery.
+
+L
+
+احچيلي عن FROM
+
+then:
+
+شنو رأيك بيه؟
+
+then:
+
+عنده موسم ثالث؟
+
+→ all correctly reference FROM.
+
+M
+
+اريد 3 افلام رعب
+
+then:
+
+شنو رأيك بيه؟
+
+→ ambiguity handling, not silent first-card selection.
+
+N
+
+Inline:
+
+@bot from
+@bot فروم
+@bot inception
+@bot رعب
+@bot
+@bot f
+
+→ valid results.
+
+O
+
+Long overview / long Inline result.
+
+→ never:
+
+Media_caption_too_long
+
+---
+
+112 — FINAL QUALITY BAR
+
+لا أريد مجرد:
+
+"بوت فيه AI."
+
+أريد:
+
+A cinema intelligence system.
+
+الفرق:
+
+Bot with AI:
+
+User
+→ AI
+→ text
+
+المطلوب:
+
+User
+ ↓
+Language Understanding
+ ↓
+Context Reconstruction
+ ↓
+Intent
+ ↓
+Entity Resolution
+ ↓
+Reality Verification
+ ↓
+User Memory
+ ↓
+Response Policy
+ ↓
+AI / Recommendation / Search
+ ↓
+Unified Rendering
+ ↓
+Telegram
+
+---
+
+113 — NEVER DO THESE
+
+ممنوع:
+
+- hardcode لكل فيلم.
+- hardcode لكل genre.
+- AI-generated fake titles.
+- إرسال AI لكل رسالة.
+- duplicate resolver.
+- duplicate renderer.
+- random first-result selection.
+- guessing ambiguous references.
+- ignoring explicit media type.
+- captions تتجاوز Telegram limits.
+- إعادة بناء components تعمل بدون سبب.
+- حذف DB data.
+- حذف working features.
+- secrets داخل logs.
+- fake tests.
+- الادعاء بأن internet tests نجحت إذا لم يكن هناك internet.
+- تغيير unrelated systems بدون ضرورة.
+
+---
+
+114 — THE FINAL GOAL
+
+بعد تنفيذ هذا المشروع، أريد أن يصبح البوت قادرًا على التعامل مع المستخدم ليس كـ:
+
+command → function
+
+بل كـ:
+
+conversation → understanding → verified reality → intelligent response
+
+أريد أن يكون المستخدم قادرًا على الكلام معه بشكل طبيعي جدًا.
+
+مثال:
+
+اريد مسلسل
+
+شنو النوع؟
+
+شي غامض ويخوف
+
+مثل شنو؟
+
+ما ادري، شي مثل FROM بس مو نفس القصة
+
+...
+
+والبوت يفهم المحادثة ويستنتج constraints تدريجيًا.
+
+مثال آخر:
+
+احچيلي عن Interstellar
+
+شنو رأيك بيه؟
+
+ليش النهاية معقدة؟
+
+يشبه شنو؟
+
+بس اريد مسلسل مو فيلم
+
+شنو أقرب واحد إله؟
+
+كل هذا يجب أن يعمل ضمن context واحد.
+
+---
+
+115 — مهمتك الآن
+
+نفذ.
+
+لكن قبل أن تكتب code:
+
+1. اقرأ الملف كاملًا.
+2. افهم architecture الحالية.
+3. حدد الأشياء التي تعمل.
+4. حدد الأشياء التي يجب تعديلها.
+5. لا تهدم working components.
+6. نفذ التطوير بشكل تدريجي.
+7. اختبر كل مرحلة.
+8. أصلح regression فور ظهوره.
+9. اختبر runtime paths.
+10. اختبر Inline بشكل خاص.
+11. اختبر Arabic/transliteration بشكل خاص.
+12. اختبر context بشكل خاص.
+13. اختبر recommendation behavior.
+14. اختبر caption limits.
+15. اختبر failure handling.
+16. نفذ final audit.
+
+إذا احتجت إعادة هيكلة كبيرة داخل الملف الواحد، افعلها.
+
+إذا احتجت إنشاء classes جديدة داخل نفس الملف، افعلها.
+
+إذا احتجت دمج systems متكررة، افعلها.
+
+إذا وجدت architecture أفضل من المقترحة هنا، استخدمها طالما تحقق الهدف.
+
+---
+
+116 — لا تعتبر المهمة منتهية بسبب نجاح py_compile
+
+نجاح:
+
+py_compile
+
+يعني أن syntax صحيح فقط.
+
+ليس دليلًا على أن البوت صحيح.
+
+المعيار الحقيقي:
+
+REAL BEHAVIOR
+
+---
+
+117 — FINAL REPORT
+
+بعد الانتهاء، أعطني:
+
+1. Architecture
+
+ما الذي أصبح عليه النظام.
+
+2. Intelligence
+
+كيف أصبح فهم اللغة.
+
+3. Entity Resolution
+
+كيف أصبح resolver.
+
+4. Context
+
+كيف أصبح السياق.
+
+5. Recommendations
+
+كيف أصبحت التوصيات.
+
+6. Inline
+
+كل ما تم تطويره في Inline.
+
+7. Reliability
+
+ما تم تحسينه.
+
+8. Security
+
+ما تم إصلاحه.
+
+9. Tests
+
+ما الذي تم اختباره.
+
+10. Remaining limitations
+
+أي شيء لم تستطع اختباره أو تنفيذه.
+
+---
+
+FINAL PRINCIPLE
+
+لا تسأل:
+
+«"كيف أضيف feature؟"»
+
+اسأل:
+
+«"كيف أجعل النظام يفهم هذا النوع من الطلبات بشكل عام؟"»
+
+لا تسأل:
+
+«"كيف أصلح فروم؟"»
+
+اسأل:
+
+«"كيف أجعل النظام يفهم أي transliterated media entity؟"»
+
+لا تسأل:
+
+«"كيف أصلح Media_caption_too_long؟"»
+
+اسأل:
+
+«"كيف أضمن أن أي Media Renderer في أي surface لا يستطيع إرسال caption غير صالح؟"»
+
+لا تسأل:
+
+«"كيف أجعل /suggest يعطي نتيجتين؟"»
+
+اسأل:
+
+«"كيف أبني Recommendation pipeline موحدة وقابلة للتحكم؟"»
+
+---
+
+THE END STATE
+
+أريد أن أصل إلى:
+
+EVE / SATORU — CINEMA INTELLIGENCE ENGINE
+
+وليس مجرد Telegram bot.
+
+إذا كانت هناك طريقة تجعل النظام أكثر ذكاءً وموثوقية وقابلية للتوسع داخل هذه القيود، نفذها.
+
+لا تختصر.
+لا تكتفِ بالظاهر.
+لا تصلح الأعراض وتترك السبب.
+لا تهدم ما يعمل.
+لا تخترع بيانات.
+لا تعتمد على AI عندما يكون deterministic logic أفضل.
+ولا تعتمد على deterministic rules عندما يحتاج الطلب إلى فهم لغوي حقيقي.
+
+اجعل كل طبقة تعرف مسؤوليتها.
+
+اجعل النظام كله يعمل كعقل واحد.
+
+ابدأ من الكود الحالي، وافهمه بالكامل، ثم نفذ.
